@@ -16,7 +16,6 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HttpContext;
 
-import spider.site.renren.RenRenPost;
 
 public class SpiderHttpClient {
   private DefaultHttpClient httpClient = new DefaultHttpClient();
@@ -82,11 +81,4 @@ public class SpiderHttpClient {
     httpClient.getConnectionManager().shutdown();
   }
 
-  public static void main(String[] args) {
-    SpiderHttpClient hct = new SpiderHttpClient();
-    hct.executePost(RenRenPost.loginPost());
-    hct.executeGet("http://www.renren.com/home");
-    System.out.println(hct.getHtml());
-    hct.shutdown();
-  }
 }

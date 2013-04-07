@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<project name="spider" default="compile"> 
+  <property name="src.dir" value="${basedir}/src" />
+  <property name="src.lib.classpath" value="${basedir}/lib" />
+  <property name="src.script.dir" value="${basedir}/script" />
+  <property name="src.webapps" value="${basedir}/webapps" />
+	<property name="src.conf.dir" value="${basedir}/conf" />
+	<property name="dist.dir" value="${basedir}/dist" />
+	<property name="dist.lib.dir" value="${basedir}/dist/lib" />
+	<property name="dist.conf.dir" value="${basedir}/dist/conf" />
+  <property name="build.encoding" value="utf-8" />
+	<property name="build.classes" value="${dist.dir}/build" />
+	<property name="dist.webapps" value="${basedir}/dist/webapps" />
+  <property name="project.version" value="1.0" />
+	<property name="project.name.jar" value="${dist.dir}/spider-${project.version}.jar" />
+	<property name="dist.bin.dir" value="${dist.dir}/bin" />
+
+  <path id="classpath">
+    <pathelement location="${build.classes}"/>
+    <fileset dir="${src.lib.classpath}">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+  <target name="init">
+    <mkdir dir="${dist.dir}"/>
+    <mkdir dir="${dist.bin.dir}"/>
+    <mkdir dir="${dist.lib.dir}"/>
+    <mkdir dir="${dist.conf.dir}"/>
+    <mkdir dir="${build.classes}"/>
+		<mkdir dir="${dist.webapps}"/>
+  </target>
+	<fileset id="lib.file.list"	dir="${src.lib.classpath}" />
+	<pathconvert property="mf.classpath" pathsep=" " refid="lib.file.list">  
+					<map from="${basedir}/" to=""/>
+  </pathconvert> 
+  <target name="compile"  depends="init">
+    <javac 
+      encoding="${build.encoding}" 
+      srcdir="${src.dir}"
+      destdir="${build.classes}"
+      includeantruntime="on">
+      <classpath>
+        <path refid="classpath"/>
+      </classpath>
+    </javac>    
+  </target>
+  <target name="package" depends="compile">
+    <jar jarfile="${project.name.jar}" basedir="${build.classes}">
+      <exclude name="Test/**/*.*"/>
+      <manifest>
+        <attribute name="Main-Class" value="com.lexin.extractor.qiushibaike.CommonExtractorByDB"/> 
+				<attribute name="Class-Path" value="${mf.classpath}" /> 
+      </manifest>
+    </jar>
+    <copy todir="${dist.lib.dir}">
+      <fileset dir="${src.lib.classpath}">
+      </fileset>
+    </copy>
+    <copy todir="${dist.bin.dir}">
+      <fileset dir="${src.script.dir}">
+      </fileset>
+    </copy>
+    <copy todir="${dist.webapps}">
+      <fileset dir="${src.webapps}">
+      </fileset>
+    </copy>
+    <copy todir="${dist.conf.dir}" flatten="true" includeEmptyDirs="false">
+      <fileset dir="${src.conf.dir}">
+        <exclude name="**/*.java"/>
+      </fileset>
+    </copy>
+    <delete dir="${build.classes}" quiet="true"/>
+  </target>
+  <target name="clean">
+    <delete dir="${dist.dir}" quiet="true"/>
+  </target>
+</project>

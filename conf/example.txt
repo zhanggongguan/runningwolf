@@ -1,0 +1,6 @@
+<div\sclass="detail">\s*<a[^>]+?>(?<title>[^>]+?)</a>\s*</div>\s*(?:<div\sclass="author">\s*<img[^>]+?>\s*<a[^>]+?>(?<author>[^>]+?)</a></div>)?\s*<div\sclass="content"\stitle="(?<date>[^>]+?)">\s*(?<content>.+?)\s*</div>\s*<div[^>]+?class="bar">\s*<ul>\s*<li[^>]+?class="up">\s*<a[^>]+?>(?<like>\d*)</a>\s*</li>\s*<l[^>]+?class="down">\s*<a[^>]+?>-(?<unlike>\d*)</a>\s*</li>\s*<li\sclass="comment">\s*<a[^>]+?title="(?<comment>\d*)[^>]+?">
+
+
+<a\shref="(?<nextpage>[^"]+?)"\stitle="ตฺ\d+าณ">
+
+http://www.qiushibaike.com

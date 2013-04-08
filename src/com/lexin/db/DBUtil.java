@@ -3,6 +3,7 @@ package com.lexin.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,6 +22,8 @@ import com.lexin.bean.Regular;
 import com.lexin.bean.RegularTypeEnum;
 import com.lexin.bean.Seed;
 import com.lexin.bean.SiteProperties;
+import com.mysql.jdbc.Connection;
+import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 public class DBUtil {
@@ -28,6 +31,7 @@ public class DBUtil {
   private QueryRunner qr;
   private MysqlDataSource ds;
   private Properties prop;
+  private Connection conn;
   private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
   public DBUtil() throws IOException {
@@ -40,17 +44,89 @@ public class DBUtil {
     this.prop = prop;
     init();
   }
-
+  
   private void init() {
     ds = new MysqlDataSource();
     ds.setUrl(prop.getProperty(SpiderConfiguration.DB_URL));
     ds.setUser(prop.getProperty(SpiderConfiguration.DB_USER));
     ds.setPassword(prop.getProperty(SpiderConfiguration.DB_PASSWD));
     qr = new QueryRunner(ds);
+
+    try{
+    	conn = (Connection) ds.getConnection();
+    	conn.setAutoCommit(false);
+    }catch(SQLException ex){
+    	System.out.println(ex.getMessage()+ " AND sql state" + ex.getSQLState());
+    	ex.printStackTrace();
+    	System.exit(1);
+    }
+
+    System.out.println("connect database ok!" + SpiderConfiguration.DB_URL);
+  }
+
+  public Connection getConnection(){
+	  return conn;
   }
 
   public QueryRunner getQueryRunner() {
     return qr;
+  }
+
+  public PreparedStatement prepareStatSQL(Feed feed) throws SQLException {
+	  String insSQL = new String("replace into feed(title,date,author,content,hypelink,refer,md5,`" +
+		"like`,unlike,collect,`comment`,`type`) values (?,?,?,?,?,?,?,?,?,?,?,?)");
+	  return (PreparedStatement) conn.prepareStatement(insSQL);
+  }
+
+  public PreparedStatement prepareStatSQL(Seed seed) throws SQLException {
+	  String insSQL = new String("replace into seed(url,crawled_at,created_at,times) values (?,?,?,?)");
+	  return (PreparedStatement) conn.prepareStatement(insSQL);
+  }
+
+  public PreparedStatement prepareStatSQL(Regular regular) throws SQLException {
+	  String insSQL = new String("replace into seed(host,reguler,created_at,md5,type) values (?,?,?,?,?)");
+	  return (PreparedStatement) conn.prepareStatement(insSQL);
+  }
+
+  public void prepareRowdata(PreparedStatement mysqlPs, Feed feed) throws SQLException {
+	mysqlPs.setString(1, feed.getTitle());
+	try{
+		mysqlPs.setTimestamp(2, Timestamp.valueOf(feed.getDate()));
+	}catch(Exception ex){
+		mysqlPs.setTimestamp(2, new java.sql.Timestamp(new java.util.Date().getTime()));
+	}
+
+	mysqlPs.setString(3, feed.getAuthor());
+	mysqlPs.setString(4, feed.getContent());
+	  mysqlPs.setString(5, feed.getHypelink());
+	  mysqlPs.setString(6, feed.getRefer());
+	  mysqlPs.setString(7, feed.getMd5());
+	  mysqlPs.setString(8, feed.getLike());
+	  mysqlPs.setString(9, feed.getUnlike());
+	  mysqlPs.setString(10, feed.getCollect());
+	  mysqlPs.setString(11, feed.getComment());
+	  mysqlPs.setString(12, feed.getType());
+
+	  mysqlPs.addBatch();
+  }
+
+  public void prepareRowdata(PreparedStatement mysqlPs, Seed seed) throws SQLException {
+	  mysqlPs.setString(1, seed.getUrl());
+	  mysqlPs.setTimestamp(2, Timestamp.valueOf(seed.getCrawledAt()));
+	  mysqlPs.setTimestamp(3, Timestamp.valueOf(seed.getCreatedAt()));
+	  mysqlPs.setInt(4, seed.getTimes());
+
+	  mysqlPs.addBatch();
+  }
+
+  public void prepareRowdata(PreparedStatement mysqlPs, Regular regular) throws SQLException {
+	  mysqlPs.setString(1, regular.getHost());
+	  mysqlPs.setString(2, regular.getRegular());
+	  mysqlPs.setTimestamp(3, Timestamp.valueOf(regular.getCreatedAt()));
+	  mysqlPs.setString(4, regular.getMd5());
+	  mysqlPs.setShort(5, (short) regular.getType());
+
+	  mysqlPs.addBatch();
   }
 
   public void save(Feed feed) throws SQLException {
@@ -122,10 +198,34 @@ public class DBUtil {
         while (rs.next()) {
           Seed seed = new Seed();
           seed.setId(rs.getInt("id"));
-          seed.setCrawledAt(rs.getString("crawled_at").trim());
-          seed.setUrl(rs.getString("url").trim());
-          seed.setCreatedAt(rs.getString("created_at").trim());
+          
+          String timestr;
+
+          if(rs.getString("crawled_at")== null){
+        	  timestr = "2013-04-01 00:00:00";
+          }else{
+        	  timestr = rs.getString("crawled_at");
+          }
+          seed.setCrawledAt(timestr.trim());
+
+          String urlstr;
+          if(rs.getString("url") == null){
+        	  System.out.println("url is empty, seed id is " + seed.getId());
+        	  continue;
+          }else{
+        	  urlstr = rs.getString("url");
+          }
+          seed.setUrl(urlstr.trim());
+          
+          if(rs.getString("created_at") == null){
+        	  timestr = "2013-04-01 00:00:00";
+          }else{
+        	  timestr = rs.getString("created_at");
+          }
+          seed.setCreatedAt(timestr.trim());
+
           seed.setTimes(rs.getInt("times"));
+
           seeds.add(seed);
         }
         return seeds;
@@ -167,14 +267,21 @@ public class DBUtil {
     qr.update(sql);
   }
 
-  public void saveFeeds(List<Feed> feeds) {
-    try {
-      for (Feed feed : feeds) {
-        save(feed);
-      }
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
+  public void saveFeeds(List<Feed> feeds) throws SQLException {
+	  PreparedStatement stat = prepareStatSQL(new Feed());
+
+	  try {
+		  for (Feed feed : feeds) {
+//            save(feed);
+			  prepareRowdata(stat, feed);
+		  }
+		  stat.executeBatch();
+		  conn.commit();
+	  } catch (SQLException e) {
+		  stat.executeBatch();
+		  conn.commit();
+          e.printStackTrace();
+	  }
   }
 
   public List<SiteProperties> getSiteProperties() throws SQLException {

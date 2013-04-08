@@ -29,6 +29,8 @@ public class SpiderUtil {
   }
 
   public final static String getHost(String urlStr) {
+    if (null == urlStr || "".equals(urlStr.trim()))
+      return null;
     URI uri;
     try {
       uri = new URI(urlStr);
@@ -61,8 +63,9 @@ public class SpiderUtil {
     List<String> result = patternOperator.exeExtractor(seed, matcher);
     return result;
   }
+
   public static void main(String[] args) {
-    String url="http://www.haha365.com/bxww/index_1.html ";
+    String url = "http://www.haha365.com/bxww/index_1.html ";
     System.out.println(getHost(url));
   }
 }

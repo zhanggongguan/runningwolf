@@ -122,9 +122,9 @@ public class DBUtil {
         while (rs.next()) {
           Seed seed = new Seed();
           seed.setId(rs.getInt("id"));
-          seed.setCrawledAt(rs.getString("crawled_at"));
-          seed.setUrl(rs.getString("url"));
-          seed.setCreatedAt(rs.getString("created_at"));
+          seed.setCrawledAt(rs.getString("crawled_at").trim());
+          seed.setUrl(rs.getString("url").trim());
+          seed.setCreatedAt(rs.getString("created_at").trim());
           seed.setTimes(rs.getInt("times"));
           seeds.add(seed);
         }
@@ -145,7 +145,7 @@ public class DBUtil {
           regular.setId(rs.getInt("id"));
           regular.setHost(rs.getString("host"));
           regular.setCreatedAt(rs.getString("created_at"));
-          regular.setRegular(rs.getString("reguler"));
+          regular.setRegular(rs.getString("reguler").trim());
           regulars.add(regular);
         }
         return regulars;

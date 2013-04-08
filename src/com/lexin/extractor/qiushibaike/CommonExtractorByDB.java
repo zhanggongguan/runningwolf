@@ -112,7 +112,7 @@ public class CommonExtractorByDB {
       crawlingSeeds = dbUtil.getCrawlingSeeds(VISIT_SITE_INTERVAL);
       if (null == crawlingSeeds || crawlingSeeds.isEmpty()) {
         Thread.sleep(10000);
-        System.out.println("[info] waiting 10 seconds for seeds....");
+        System.out.println("[INFO] waiting 10 seconds for seeds....");
         continue;
       }
 
@@ -126,6 +126,10 @@ public class CommonExtractorByDB {
           System.out.println("[INFO] uptomax passed " + url);
           continue;
         }
+        if(null==host){
+          System.out.println("[WARN] url can't be resolved "+url);
+          continue;
+        }
         String encoding = (null == encodings.get(host) || "".equals(encodings.get(host))) ? "utf-8" : encodings
             .get(host);
         String text = Util.downLoadHTML(url, encoding);
@@ -133,7 +137,7 @@ public class CommonExtractorByDB {
           continue;
         List<Pattern> cps = contentPatterns.get(host);
         if (cps == null) {
-          System.out.println("[INFO] Error Configuration: " + host);
+          System.out.println("[ERROR] Error Configuration: " + host);
           break;
         }
         Matcher matcher = null;

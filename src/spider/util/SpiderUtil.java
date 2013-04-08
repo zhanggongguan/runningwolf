@@ -34,7 +34,6 @@ public class SpiderUtil {
       uri = new URI(urlStr);
       return uri.getHost();
     } catch (Exception e) {
-      System.out.println("Error:" + urlStr);
       e.printStackTrace();
     }
     return null;
@@ -61,5 +60,9 @@ public class SpiderUtil {
     PatternOperator patternOperator = new PatternOperator();
     List<String> result = patternOperator.exeExtractor(seed, matcher);
     return result;
+  }
+  public static void main(String[] args) {
+    String url="http://www.haha365.com/bxww/index_1.html ";
+    System.out.println(getHost(url));
   }
 }

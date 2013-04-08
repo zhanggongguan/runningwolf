@@ -105,7 +105,7 @@ public class CommonExtractorByDB {
     while (true) {
       long curLoadTimeSpam = System.currentTimeMillis();
       if (curLoadTimeSpam - preLoadTimeSpam >= SETUP_EXTRACTOR_PATTERN_TIME_INTERVAL) {
-        System.out.println("[info] reload site regex expression comfigurations.");
+        System.out.println("[INFO] reload site regex expression comfigurations.");
         preLoadTimeSpam = curLoadTimeSpam;
         setup();
       }

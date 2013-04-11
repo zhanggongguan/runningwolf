@@ -1,6 +1,8 @@
 package com.lexin.db;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -90,24 +92,27 @@ public class DBUtil {
 
   public void prepareRowdata(PreparedStatement mysqlPs, Feed feed) throws SQLException {
 	mysqlPs.setString(1, feed.getTitle());
-	try{
+	if(feed.getDate() != null){
 		mysqlPs.setTimestamp(2, Timestamp.valueOf(feed.getDate()));
-	}catch(Exception ex){
+	}else{
 		mysqlPs.setTimestamp(2, new java.sql.Timestamp(new java.util.Date().getTime()));
 	}
 
 	mysqlPs.setString(3, feed.getAuthor());
+	String content = feed.getContent();
+//	InputStream btext = new ByteArrayInputStream(content.getBytes());
+//	mysqlPs.setBinaryStream(4, btext);
 	mysqlPs.setString(4, feed.getContent());
-	  mysqlPs.setString(5, feed.getHypelink());
-	  mysqlPs.setString(6, feed.getRefer());
-	  mysqlPs.setString(7, feed.getMd5());
-	  mysqlPs.setString(8, feed.getLike());
-	  mysqlPs.setString(9, feed.getUnlike());
-	  mysqlPs.setString(10, feed.getCollect());
-	  mysqlPs.setString(11, feed.getComment());
-	  mysqlPs.setString(12, feed.getType());
+	mysqlPs.setString(5, feed.getHypelink());
+	mysqlPs.setString(6, feed.getRefer());
+	mysqlPs.setString(7, feed.getMd5());
+	mysqlPs.setString(8, feed.getLike());
+	mysqlPs.setString(9, feed.getUnlike());
+	mysqlPs.setString(10, feed.getCollect());
+	mysqlPs.setString(11, feed.getComment());
+	mysqlPs.setString(12, feed.getType());
 
-	  mysqlPs.addBatch();
+	mysqlPs.addBatch();
   }
 
   public void prepareRowdata(PreparedStatement mysqlPs, Seed seed) throws SQLException {

@@ -21,7 +21,16 @@ public class Feed {
   private String collect;
   private String comment;
   private String type;
-  private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+  private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+  public Feed(){
+	  date = sdf.format(new Date());
+	  collect = "";
+	  like = "0";
+	  unlike = "0";
+	  comment = "0";
+	  type = "";
+  }
 
   public String getTitle() {
     return title;
@@ -32,14 +41,13 @@ public class Feed {
   }
 
   public String getDate() {
-    if (null == date) {
-      date = sdf.format(new Date());
-    }
     return date;
   }
 
   public void setDate(String date) {
-    this.date = date;
+	  if(date != null){
+		  this.date = date;
+	  }
   }
 
   public String getAuthor() {
@@ -82,7 +90,9 @@ public class Feed {
   }
 
   public void setLike(String like) {
-    this.like = like;
+	  if(like != null){
+		  this.like = like;
+	  }
   }
 
   public String getUnlike() {
@@ -90,7 +100,9 @@ public class Feed {
   }
 
   public void setUnlike(String unlike) {
-    this.unlike = unlike;
+	  if(unlike != null){
+		  this.unlike = unlike;
+	  }
   }
 
   public String getCollect() {
@@ -98,7 +110,9 @@ public class Feed {
   }
 
   public void setCollect(String collect) {
-    this.collect = collect;
+	  if(collect != null){
+		  this.collect = collect;
+	  }
   }
 
   public String getComment() {
@@ -106,7 +120,9 @@ public class Feed {
   }
 
   public void setComment(String comment) {
-    this.comment = comment;
+	  if(comment != null){
+		  this.comment = comment;
+	  }
   }
 
   @Override

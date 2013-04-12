@@ -43,7 +43,7 @@
 									
 									</script>
 					</head>
-					<body>
+					<body style="font-size:12px">
 									<form name="form1" id="form1" action="/crawler.jsp" method="post"> 
 									种子链接：
 									<input type="text" name="seed" size="30" value="<%=seed%>"/>&nbsp;&nbsp;网站编码：<input type="text" name="encoding" size="30" value="<%=encoding%>"/><br/><br/>

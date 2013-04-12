@@ -126,8 +126,8 @@ public class CommonExtractorByDB {
           System.out.println("[INFO] uptomax passed " + url);
           continue;
         }
-        if(null==host){
-          System.out.println("[WARN] url can't be resolved "+url);
+        if (null == host) {
+          System.out.println("[WARN] url can't be resolved " + url);
           continue;
         }
         String encoding = (null == encodings.get(host) || "".equals(encodings.get(host))) ? "utf-8" : encodings
@@ -197,13 +197,9 @@ public class CommonExtractorByDB {
         Thread.sleep(VISIT_SITE_INTERVAL);
         counter(host);
       }
-      try {
-        dbUtil.saveFeeds(results);// save results
-        dbUtil.saveSeeds(nextpages);// save nextpages
-        dbUtil.updateCrawledTimes(crawlingSeeds);// update crawling status
-      } catch (SQLException e) {
-        e.printStackTrace();
-      }
+      dbUtil.saveFeeds(results);// save results
+      dbUtil.saveSeeds(nextpages);// save nextpages
+      dbUtil.updateCrawledTimes(crawlingSeeds);// update crawling status
     }
   }
 

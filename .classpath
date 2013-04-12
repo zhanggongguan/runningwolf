@@ -3,5 +3,20 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/wolf-libs"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/ant-1.6.5.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/commons-codec-1.6.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/commons-dbutils-1.5.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/fluent-hc-4.2.3.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/httpclient-4.2.3.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/httpclient-cache-4.2.3.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/httpcore-4.2.2.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/httpmime-4.2.3.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/jetty-6.1.26.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/jetty-util-6.1.26.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/jsp-2.1.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/jsp-api-2.1.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/mysql-connector-java-5.1.21.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/servlet-api-2.5-20081211.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

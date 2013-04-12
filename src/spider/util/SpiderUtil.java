@@ -33,7 +33,7 @@ public class SpiderUtil {
       return null;
     URI uri;
     try {
-      uri = new URI(urlStr);
+      uri = new URI(urlStr.trim());
       return uri.getHost();
     } catch (Exception e) {
       e.printStackTrace();

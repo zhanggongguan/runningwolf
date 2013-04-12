@@ -3,7 +3,6 @@ package com.lexin.db;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,8 +21,6 @@ import com.lexin.bean.Regular;
 import com.lexin.bean.RegularTypeEnum;
 import com.lexin.bean.Seed;
 import com.lexin.bean.SiteProperties;
-import com.mysql.jdbc.Connection;
-import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 public class DBUtil {
@@ -31,7 +28,6 @@ public class DBUtil {
   private QueryRunner qr;
   private MysqlDataSource ds;
   private Properties prop;
-  private Connection conn;
   private final static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
   public DBUtil() throws IOException {
@@ -44,143 +40,79 @@ public class DBUtil {
     this.prop = prop;
     init();
   }
-  
+
   private void init() {
     ds = new MysqlDataSource();
     ds.setUrl(prop.getProperty(SpiderConfiguration.DB_URL));
     ds.setUser(prop.getProperty(SpiderConfiguration.DB_USER));
     ds.setPassword(prop.getProperty(SpiderConfiguration.DB_PASSWD));
     qr = new QueryRunner(ds);
-
-    try{
-    	conn = (Connection) ds.getConnection();
-    	conn.setAutoCommit(false);
-    }catch(SQLException ex){
-    	System.out.println(ex.getMessage()+ " AND sql state" + ex.getSQLState());
-    	ex.printStackTrace();
-    	System.exit(1);
-    }
-
-    System.out.println("connect database ok!" + SpiderConfiguration.DB_URL);
-  }
-
-  public Connection getConnection(){
-	  return conn;
   }
 
   public QueryRunner getQueryRunner() {
     return qr;
   }
 
-  public PreparedStatement prepareStatSQL(Feed feed) throws SQLException {
-	  String insSQL = new String("replace into feed(title,date,author,content,hypelink,refer,md5,`" +
-		"like`,unlike,collect,`comment`,`type`) values (?,?,?,?,?,?,?,?,?,?,?,?)");
-	  return (PreparedStatement) conn.prepareStatement(insSQL);
-  }
-
-  public PreparedStatement prepareStatSQL(Seed seed) throws SQLException {
-	  String insSQL = new String("replace into seed(url,crawled_at,created_at,times) values (?,?,?,?)");
-	  return (PreparedStatement) conn.prepareStatement(insSQL);
-  }
-
-  public PreparedStatement prepareStatSQL(Regular regular) throws SQLException {
-	  String insSQL = new String("replace into seed(host,reguler,created_at,md5,type) values (?,?,?,?,?)");
-	  return (PreparedStatement) conn.prepareStatement(insSQL);
-  }
-
-  public void prepareRowdata(PreparedStatement mysqlPs, Feed feed) throws SQLException {
-	mysqlPs.setString(1, feed.getTitle());
-	try{
-		mysqlPs.setTimestamp(2, Timestamp.valueOf(feed.getDate()));
-	}catch(Exception ex){
-		mysqlPs.setTimestamp(2, new java.sql.Timestamp(new java.util.Date().getTime()));
-	}
-
-	mysqlPs.setString(3, feed.getAuthor());
-	mysqlPs.setString(4, feed.getContent());
-	  mysqlPs.setString(5, feed.getHypelink());
-	  mysqlPs.setString(6, feed.getRefer());
-	  mysqlPs.setString(7, feed.getMd5());
-	  mysqlPs.setString(8, feed.getLike());
-	  mysqlPs.setString(9, feed.getUnlike());
-	  mysqlPs.setString(10, feed.getCollect());
-	  mysqlPs.setString(11, feed.getComment());
-	  mysqlPs.setString(12, feed.getType());
-
-	  mysqlPs.addBatch();
-  }
-
-  public void prepareRowdata(PreparedStatement mysqlPs, Seed seed) throws SQLException {
-	  mysqlPs.setString(1, seed.getUrl());
-	  mysqlPs.setTimestamp(2, Timestamp.valueOf(seed.getCrawledAt()));
-	  mysqlPs.setTimestamp(3, Timestamp.valueOf(seed.getCreatedAt()));
-	  mysqlPs.setInt(4, seed.getTimes());
-
-	  mysqlPs.addBatch();
-  }
-
-  public void prepareRowdata(PreparedStatement mysqlPs, Regular regular) throws SQLException {
-	  mysqlPs.setString(1, regular.getHost());
-	  mysqlPs.setString(2, regular.getRegular());
-	  mysqlPs.setTimestamp(3, Timestamp.valueOf(regular.getCreatedAt()));
-	  mysqlPs.setString(4, regular.getMd5());
-	  mysqlPs.setShort(5, (short) regular.getType());
-
-	  mysqlPs.addBatch();
-  }
-
   public void save(Feed feed) throws SQLException {
-    StringBuffer sql = new StringBuffer(
-        "replace into feed(title,date,author,content,hypelink,refer,md5,`like`,unlike,collect,`comment`,`type`)values(");
-    sql.append("'" + feed.getTitle() + "',");
-    sql.append("'" + feed.getDate() + "',");
-    sql.append("'" + feed.getAuthor() + "',");
-    sql.append("'" + feed.getContent().replaceAll("'", "''") + "',");
-    sql.append("'" + feed.getHypelink() + "',");
-    sql.append("'" + feed.getRefer() + "',");
-    sql.append("'" + feed.getMd5() + "',");
-    sql.append("'" + feed.getLike() + "',");
-    sql.append("'" + feed.getUnlike() + "',");
-    sql.append("'" + feed.getCollect() + "',");
-    sql.append("'" + feed.getComment() + "',");
-    sql.append("'" + feed.getType() + "')");
-    qr.update(sql.toString());
+    Object[] params = new Object[12];
+    params[0] = feed.getTitle();
+    params[1] = feed.getDate();
+    params[2] = feed.getAuthor();
+    params[3] = feed.getContent();
+    params[4] = feed.getHypelink();
+    params[5] = feed.getRefer();
+    params[6] = feed.getMd5();
+    params[7] = feed.getLike();
+    params[8] = feed.getUnlike();
+    params[9] = feed.getCollect();
+    params[10] = feed.getComment();
+    params[11] = feed.getType();
+    String sql = "replace into feed(title,date,author,content,hypelink,refer,md5,`like`,unlike,collect,"
+        + "`comment`,`type`)values(?,?,?,?,?,?,?,?,?,?,?,?)";
+    qr.update(sql, params);
   }
 
   public void save(Seed seed) throws SQLException {
-    StringBuffer sql = new StringBuffer();
-    sql.append("replace into seed(url,crawled_at,created_at)values(");
-    sql.append("'" + seed.getUrl() + "',");
-    sql.append("'" + seed.getCrawledAt() + "',");
-    sql.append("'" + seed.getCreatedAt() + "')");
-    qr.update(sql.toString());
+    String sql = "replace into seed(url,crawled_at,created_at)values(?,?,?)";
+    Object[] params = new Object[3];
+    params[0] = seed.getUrl();
+    params[1] = seed.getCrawledAt();
+    params[2] = seed.getCreatedAt();
+    qr.update(sql, params);
   }
 
   public void save(Regular regular) throws SQLException {
-    StringBuffer sql = new StringBuffer();
-    sql.append("replace into reguler(host,reguler,created_at,md5,type)values(");
-    sql.append("'" + regular.getHost() + "',");
-    sql.append("'" + specialSingal(regular.getRegular()) + "',");
-    sql.append("'" + regular.getCreatedAt() + "',");
-    sql.append("'" + regular.getMd5() + "',");
-    sql.append("'" + regular.getType() + "')");
-    qr.update(sql.toString());
+    String sql = "replace into reguler(host,reguler,created_at,md5,type)values(?,?,?,?,?)";
+    Object[] params = new Object[5];
+    params[0] = regular.getHost();
+    params[1] = regular.getRegular();
+    params[2] = regular.getCreatedAt();
+    params[3] = regular.getMd5();
+    params[4] = regular.getType();
+    qr.update(sql, params);
   }
-  public void save(SiteProperties sp) throws SQLException{
-    String sql="replace into siteprop(host,encoding)values('"+sp.getHost()+"','"+sp.getEncoding()+"');";
-    qr.update(sql);
+
+  public void save(SiteProperties sp) throws SQLException {
+    String sql = "replace into siteprop(host,encoding)values(?,?);";
+    Object[] params = new Object[2];
+    params[0] = sp.getHost();
+    params[1] = sp.getEncoding();
+    qr.update(sql, params);
   }
+
   public void saveSeeds(List<Seed> seeds) throws SQLException {
     for (Seed seed : seeds) {
       save(seed);
     }
   }
-  public String specialSingal(String text){
-    if(null==text||"".equals(text.trim())){
+
+  public String specialSingal(String text) {
+    if (null == text || "".equals(text.trim())) {
       return "";
     }
-    return text.replace("'","''").replace("\\", "\\\\");
+    return text.replace("'", "''").replace("\\", "\\\\");
   }
+
   public void saveRegulars(List<Regular> regulars) throws SQLException {
     for (Regular regular : regulars) {
       save(regular);
@@ -188,8 +120,11 @@ public class DBUtil {
   }
 
   public List<Seed> getCrawlingSeeds(int interval) throws SQLException {
-    String sql = "select id,url,crawled_at,created_at,times from seed where times=0 or crawled_at <date_sub(now(), interval "
-        + interval + " day) limit 10;";
+    String sql = "select id,url,(case when (crawled_at is null or crawled_at='') then now() else crawled_at end) as crawled_at,"
+        + "(case when (created_at is null or created_at='') then CURDATE() else created_at end) as created_at,times from seed"
+        + " where (times=0 or crawled_at <date_sub(now(), interval "
+        + interval
+        + " day)) and url is not null and url !='' limit 10;";
     return qr.query(sql, new ResultSetHandler<List<Seed>>() {
 
       @Override
@@ -198,34 +133,10 @@ public class DBUtil {
         while (rs.next()) {
           Seed seed = new Seed();
           seed.setId(rs.getInt("id"));
-          
-          String timestr;
-
-          if(rs.getString("crawled_at")== null){
-        	  timestr = "2013-04-01 00:00:00";
-          }else{
-        	  timestr = rs.getString("crawled_at");
-          }
-          seed.setCrawledAt(timestr.trim());
-
-          String urlstr;
-          if(rs.getString("url") == null){
-        	  System.out.println("url is empty, seed id is " + seed.getId());
-        	  continue;
-          }else{
-        	  urlstr = rs.getString("url");
-          }
-          seed.setUrl(urlstr.trim());
-          
-          if(rs.getString("created_at") == null){
-        	  timestr = "2013-04-01 00:00:00";
-          }else{
-        	  timestr = rs.getString("created_at");
-          }
-          seed.setCreatedAt(timestr.trim());
-
+          seed.setCrawledAt(rs.getString("crawled_at").trim());
+          seed.setUrl(rs.getString("url").trim());
+          seed.setCreatedAt(rs.getString("created_at").trim());
           seed.setTimes(rs.getInt("times"));
-
           seeds.add(seed);
         }
         return seeds;
@@ -235,7 +146,8 @@ public class DBUtil {
   }
 
   public List<Regular> getCrawlerRegulars(int type) throws SQLException {
-    String sql = "select id,host,reguler,created_at from reguler where type=" + type + ";";
+    String sql = "select id,host,reguler,created_at from reguler where type=" + type
+        + " and reguler is not null and reguler !='';";
     return qr.query(sql, new ResultSetHandler<List<Regular>>() {
       @Override
       public List<Regular> handle(ResultSet rs) throws SQLException {
@@ -267,27 +179,35 @@ public class DBUtil {
     qr.update(sql);
   }
 
-  public void saveFeeds(List<Feed> feeds) throws SQLException {
-	  PreparedStatement stat = prepareStatSQL(new Feed());
-
-	  try {
-		  for (Feed feed : feeds) {
-//            save(feed);
-			  prepareRowdata(stat, feed);
-		  }
-		  stat.executeBatch();
-		  conn.commit();
-	  } catch (SQLException e) {
-		  stat.executeBatch();
-		  conn.commit();
-          e.printStackTrace();
-	  }
+  public void saveFeeds(List<Feed> feeds) {
+    Object[][] params = new Object[feeds.size()][12];
+    for (int i = 0; i < feeds.size(); i++) {
+      Feed feed = feeds.get(i);
+      params[i][0] = feed.getTitle();
+      params[i][1] = feed.getDate();
+      params[i][2] = feed.getAuthor();
+      params[i][3] = feed.getContent();
+      params[i][4] = feed.getHypelink();
+      params[i][5] = feed.getRefer();
+      params[i][6] = feed.getMd5();
+      params[i][7] = feed.getLike();
+      params[i][8] = feed.getUnlike();
+      params[i][9] = feed.getCollect();
+      params[i][10] = feed.getComment();
+      params[i][11] = feed.getType();
+    }
+    String sql = "replace into feed(title,date,author,content,hypelink,refer,md5,`like`,unlike,collect,"
+        + "`comment`,`type`)values(?,?,?,?,?,?,?,?,?,?,?,?)";
+    try {
+      qr.batch(sql, params);
+    } catch (SQLException e1) {
+      e1.printStackTrace();
+    }
   }
 
   public List<SiteProperties> getSiteProperties() throws SQLException {
     String sql = "select host,encoding from siteprop";
     return qr.query(sql, new ResultSetHandler<List<SiteProperties>>() {
-
       @Override
       public List<SiteProperties> handle(ResultSet rs) throws SQLException {
         List<SiteProperties> props = new ArrayList<SiteProperties>();
@@ -331,28 +251,29 @@ public class DBUtil {
     }
 
   }
-  public void saveConfiguration(String seedUrl,String encoding,String nextPattern,String contentPattern){
-    String date=sdf.format(new Date());
-    String host=SpiderUtil.getHost(seedUrl);
-    Seed seed=new Seed();
+
+  public void saveConfiguration(String seedUrl, String encoding, String nextPattern, String contentPattern) {
+    String date = sdf.format(new Date());
+    String host = SpiderUtil.getHost(seedUrl);
+    Seed seed = new Seed();
     seed.setTimes(0);
     seed.setUrl(seedUrl);
     seed.setCreatedAt(date);
     seed.setCrawledAt(date);
-    
-    Regular regular=new Regular();
+
+    Regular regular = new Regular();
     regular.setCreatedAt(date);
     regular.setHost(host);
     regular.setRegular(contentPattern);
     regular.setType(RegularTypeEnum.CONTENT.ordinal());
-    
-    Regular nextpage=new Regular();
+
+    Regular nextpage = new Regular();
     nextpage.setCreatedAt(date);
     nextpage.setHost(host);
     nextpage.setRegular(nextPattern);
     nextpage.setType(RegularTypeEnum.NEXTPAGE.ordinal());
-    
-    SiteProperties sp=new SiteProperties();
+
+    SiteProperties sp = new SiteProperties();
     sp.setEncoding(encoding);
     sp.setHost(host);
     try {

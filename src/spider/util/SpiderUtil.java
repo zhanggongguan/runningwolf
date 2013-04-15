@@ -5,16 +5,29 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import spider.extrator.regex.RegexUtil;
 
 import com.lexin.bean.Feed;
+import com.lexin.bean.Seed;
 import com.lexin.extractor.qiushibaike.PatternOperator;
 
 public class SpiderUtil {
+  public final static Log LOG = LogFactory.getLog(SpiderUtil.class);
+
   public final static void printResult(List<Feed> feeds) {
     for (Feed feed : feeds) {
-      System.out.println(feed.toString());
+      LOG.debug(feed.toString());
     }
+  }
+
+  public final static void printSeeds(List<com.lexin.bean.Seed> seeds) {
+    for (Seed seed : seeds) {
+      LOG.debug(seed.toString());
+    }
+
   }
 
   public final static String getAbsoluteUrl(String crawlingUrl, String seed) {
@@ -62,6 +75,26 @@ public class SpiderUtil {
     PatternOperator patternOperator = new PatternOperator();
     List<String> result = patternOperator.exeExtractor(seed, matcher);
     return result;
+  }
+
+  public final static String defaultHttpProctol(String url) {
+    if (null == url || "".equals(url.trim()))
+      return null;
+    url = url.toLowerCase();
+    if (url.contains("://") && !(url.startsWith("http://") || url.startsWith("https://")))
+      return null;
+    else if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+    return "http://" + url;
+  }
+
+  public final static boolean isEmpty(List<?> items) {
+    return null == items || items.size() == 0;
+  }
+
+  public final static boolean isEmpty(String str) {
+    return null == str || "".equals(str.trim());
   }
 
   public static void main(String[] args) {

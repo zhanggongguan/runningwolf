@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="conf"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/wolf-libs"/>
 	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/ant-1.6.5.jar"/>
@@ -18,5 +19,6 @@
 	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/jsp-api-2.1.jar"/>
 	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/mysql-connector-java-5.1.21.jar"/>
 	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/servlet-api-2.5-20081211.jar"/>
+	<classpathentry kind="lib" path="D:/workspace/runningwolf/lib/log4j-1.2.15.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

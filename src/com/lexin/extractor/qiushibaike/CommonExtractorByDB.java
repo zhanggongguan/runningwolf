@@ -9,6 +9,9 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import spider.extrator.regex.RegexUtil;
 import spider.util.SpiderUtil;
 import util.SpiderConfiguration;
@@ -31,12 +34,14 @@ public class CommonExtractorByDB {
   private static final int REGULER_TYPE_CONTENT = 1;
   private static final int REGULER_TYPE_NEXTPAGE = 0;
   private static final int VISIT_SITE_INTERVAL = 1000;
-  private static final int MAX_VISIT_LINKS = 500;
+  // private static final int MAX_VISIT_LINKS = 500;
   private static final int SETUP_EXTRACTOR_PATTERN_TIME_INTERVAL = 60000;
   private Hashtable<String, Integer> counters = null;
 
   private PatternOperator patternOperator;
   private DBUtil dbUtil;
+
+  private final static Log LOG = LogFactory.getLog(CommonExtractorByDB.class);
 
   public CommonExtractorByDB() throws IOException, SQLException {
     counters = new Hashtable<String, Integer>();
@@ -50,7 +55,7 @@ public class CommonExtractorByDB {
 
   public void counter(String host) {
     Integer counter = counters.get(host);
-    if (null == counter || counter == 0) {
+    if (!counters.containsKey(host)) {
       counters.put(host, 1);
     } else {
       counters.put(host, counter + 1);
@@ -61,7 +66,6 @@ public class CommonExtractorByDB {
     nextPatterns = new Hashtable<String, List<Pattern>>();
     contentPatterns = new Hashtable<String, List<Pattern>>();
     encodings = new Hashtable<String, String>();
-
     List<Regular> cRegulars = dbUtil.getCrawlerRegulars(REGULER_TYPE_CONTENT);
     List<Regular> nRegulars = dbUtil.getCrawlerRegulars(REGULER_TYPE_NEXTPAGE);
     List<SiteProperties> siteProps = dbUtil.getSiteProperties();
@@ -105,94 +109,44 @@ public class CommonExtractorByDB {
     while (true) {
       long curLoadTimeSpam = System.currentTimeMillis();
       if (curLoadTimeSpam - preLoadTimeSpam >= SETUP_EXTRACTOR_PATTERN_TIME_INTERVAL) {
-        System.out.println("[INFO] reload site regex expression comfigurations.");
+        LOG.info("reload site regex expression comfigurations.");
         preLoadTimeSpam = curLoadTimeSpam;
         setup();
       }
       crawlingSeeds = dbUtil.getCrawlingSeeds(VISIT_SITE_INTERVAL);
-      if (null == crawlingSeeds || crawlingSeeds.isEmpty()) {
+      if (SpiderUtil.isEmpty(crawlingSeeds)) {
+        LOG.info("waiting 10 seconds for seeds....");
         Thread.sleep(10000);
-        System.out.println("[INFO] waiting 10 seconds for seeds....");
         continue;
       }
 
       List<Feed> results = new ArrayList<Feed>();
       List<Seed> nextpages = new ArrayList<Seed>();
       for (Seed seed : crawlingSeeds) {
-        String url = seed.getUrl();
-        System.out.println("[INFO] crawling " + url);
-        final String host = SpiderUtil.getHost(url);
-        if (null != counters.get(host) && counters.get(host) > MAX_VISIT_LINKS) {
-          System.out.println("[INFO] uptomax passed " + url);
+        String crawlingURL = SpiderUtil.defaultHttpProctol(seed.getUrl());
+        final String host = SpiderUtil.getHost(crawlingURL);
+        List<Pattern> patterns = contentPatterns.get(host);
+        LOG.info("start crawling " + crawlingURL);
+        if (SpiderUtil.isEmpty(crawlingURL) || SpiderUtil.isEmpty(host) || SpiderUtil.isEmpty(patterns)) {
+          LOG.warn("url can't be resolved or configured " + crawlingURL);
           continue;
         }
-        if (null == host) {
-          System.out.println("[WARN] url can't be resolved " + url);
+        String text = Util.downLoadHTML(crawlingURL, currentPageEncoding(host));
+        if (SpiderUtil.isEmpty(text))
           continue;
+        List<Feed> feeds = parseCurrentPageForContent(crawlingURL, patterns, text);
+        LOG.info(crawlingURL + " hit " + feeds.size() + " targets!");
+
+        List<Seed> seeds = parseCurrentPageForSeed(crawlingURL, host, text);
+        if (!SpiderUtil.isEmpty(seeds)) {
+          nextpages.addAll(seeds);
         }
-        String encoding = (null == encodings.get(host) || "".equals(encodings.get(host))) ? "utf-8" : encodings
-            .get(host);
-        String text = Util.downLoadHTML(url, encoding);
-        if (null == text || "".equals(text))
-          continue;
-        List<Pattern> cps = contentPatterns.get(host);
-        if (cps == null) {
-          System.out.println("[ERROR] Error Configuration: " + host);
-          break;
+        if (!SpiderUtil.isEmpty(feeds)) {
+          results.addAll(feeds);
         }
-        Matcher matcher = null;
-        String patternStr = null;
-        for (Pattern cp : cps) {
-          matcher = cp.matcher(text);
-          if (matcher != null && matcher.find()) {
-            matcher.reset();
-            patternStr = cp.pattern();
-            break;
-          }
-        }
-        // Operate Content
-        List<Feed> result = null;
-        if (null != matcher && matcher.find()) {
-          matcher.reset();
-          List<String> namedGroups = RegexUtil.regexPatternNamedGroups(patternStr);
-          result = patternOperator.exeObjectExtractor(url, matcher, namedGroups);
-        }
-        if (null != result) {
-          results.addAll(result);
-          SpiderUtil.printResult(result);
-        } else {
-          System.out.println("[INFO] " + url + " is not matched!");
-        }
-        // Operate Next Page
-        matcher = null;
-        List<Pattern> nps = nextPatterns.get(host);
-        for (Pattern np : nps) {
-          matcher = np.matcher(text);
-          if (matcher != null && matcher.find()) {
-            matcher.reset();
-            final Matcher m = matcher;
-            final String crawlingUrl = url;
-            List<Seed> nextpage = patternOperator.exeExtractor(crawlingUrl, m, new GroupHandler<Seed>() {
-              @Override
-              public List<Seed> handle() {
-                List<Seed> results = new ArrayList<Seed>();
-                while (m.find()) {
-                  String url = SpiderUtil.getAbsoluteUrl(crawlingUrl, m.group(1));
-                  if (url.contains(host)) {
-                    Seed seed = new Seed();
-                    seed.setCrawledAt(Util.getCurrentDate());
-                    seed.setCreatedAt(Util.getCurrentDateTime());
-                    seed.setUrl(url);
-                    results.add(seed);
-                  }
-                }
-                return results;
-              }
-            });
-            if (null != nextpage) {
-              nextpages.addAll(nextpage);
-            }
-          }
+        if (LOG.isDebugEnabled()) {
+          SpiderUtil.printResult(feeds);
+          SpiderUtil.printSeeds(seeds);
         }
         Thread.sleep(VISIT_SITE_INTERVAL);
         counter(host);
@@ -201,6 +155,42 @@ public class CommonExtractorByDB {
       dbUtil.saveSeeds(nextpages);// save nextpages
       dbUtil.updateCrawledTimes(crawlingSeeds);// update crawling status
     }
+  }
+
+  public List<Seed> parseCurrentPageForSeed(final String crawlingURL, String host, String text) {
+    List<Pattern> nps = nextPatterns.get(host);
+    List<Seed> seeds = new ArrayList<Seed>();
+    for (Pattern np : nps) {
+      Matcher matcher = np.matcher(text);
+      List<Seed> items = patternOperator.exeExtractor(crawlingURL, host, matcher);
+      if (!SpiderUtil.isEmpty(items)) {
+        seeds.addAll(items);
+      }
+    }
+    return seeds;
+  }
+
+  public String currentPageEncoding(String host) {
+    return (null == encodings.get(host) || "".equals(encodings.get(host))) ? "utf-8" : encodings.get(host);
+  }
+
+  public List<Feed> parseCurrentPageForContent(String crawlingURL, List<Pattern> patterns, String text) {
+    Matcher matcher = null;
+    String contentRegex = null;
+    for (Pattern pattern : patterns) {
+      matcher = pattern.matcher(text);
+      if (matcher != null && matcher.find()) {
+        contentRegex = pattern.pattern();
+        break;
+      }
+    }
+    List<Feed> feeds = new ArrayList<Feed>();
+    if (!SpiderUtil.isEmpty(contentRegex)) {
+      matcher.reset();
+      List<String> namedGroups = RegexUtil.regexPatternNamedGroups(contentRegex);
+      feeds = patternOperator.exeObjectExtractor(crawlingURL, matcher, namedGroups);
+    }
+    return feeds;
   }
 
   public static void main(String[] args) {

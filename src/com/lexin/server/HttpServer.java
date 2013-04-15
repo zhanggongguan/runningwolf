@@ -1,5 +1,7 @@
 package com.lexin.server;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.jasper.servlet.JspServlet;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.servlet.Context;
@@ -7,13 +9,14 @@ import org.mortbay.jetty.servlet.DefaultServlet;
 import org.mortbay.jetty.servlet.ServletHolder;
 
 public class HttpServer {
+  private final static Log LOG=LogFactory.getLog(HttpServer.class);
   public static void main(String[] args) {
     HttpServer hs = new HttpServer();
     hs.start();
   }
 
   public void start() {
-    System.out.println("Initializing server...");
+    LOG.info("Initializing server...");
     final Server server = new Server(8080);
     final Context context = new Context(server, "/", Context.SESSIONS);
     context.setResourceBase("webapps");
@@ -25,17 +28,10 @@ public class HttpServer {
       server.setHandler(context);
       server.start();
     } catch (Exception e) {
-      System.out.println("Failed to start server!");
+      LOG.error("Failed to start server!");
       return;
     }
 
-    System.out.println("Server running...");
-    // while (true) {
-    // try {
-    // server.join();
-    // } catch (InterruptedException e) {
-    // System.out.println("Server interrupted!");
-    // }
-    // }
+    LOG.info("Server running...");
   }
 }

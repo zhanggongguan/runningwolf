@@ -112,7 +112,7 @@ public class Feed {
   @Override
   public String toString() {
     String lineSeparator = System.getProperty("line.separator");
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = new StringBuffer(lineSeparator);
     sb.append("Title:" + title + lineSeparator);
     sb.append("Crawled Date:" + date + lineSeparator);
     sb.append("Author:" + author + lineSeparator);

@@ -77,7 +77,7 @@ public class SpiderUtil {
     return result;
   }
 
-  public final static String defaultHttpProctol(String url) {
+  public final static String defaultHttpProtocol(String url) {
     if (null == url || "".equals(url.trim()))
       return null;
     url = url.toLowerCase();

@@ -63,7 +63,7 @@ public class PatternOperator {
         while (matcher.find()) {
           String seedURL = SpiderUtil.getAbsoluteUrl(crawlingUrl, matcher.group(1));
           if (seedURL.contains(host)) {
-            seedURL = SpiderUtil.defaultHttpProctol(seedURL);
+            seedURL = SpiderUtil.defaultHttpProtocol(seedURL);
             if (null == seedURL) {
               continue;
             }

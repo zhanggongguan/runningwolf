@@ -123,7 +123,7 @@ public class CommonExtractorByDB {
       List<Feed> results = new ArrayList<Feed>();
       List<Seed> nextpages = new ArrayList<Seed>();
       for (Seed seed : crawlingSeeds) {
-        String crawlingURL = SpiderUtil.defaultHttpProctol(seed.getUrl());
+        String crawlingURL = SpiderUtil.defaultHttpProtocol(seed.getUrl());
         final String host = SpiderUtil.getHost(crawlingURL);
         List<Pattern> patterns = contentPatterns.get(host);
         LOG.info("start crawling " + crawlingURL);
